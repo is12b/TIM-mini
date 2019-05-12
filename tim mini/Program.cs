@@ -177,11 +177,11 @@ PhysicalGunObject/
         static Dictionary<string, Dictionary<string, ItemData>> typeSubData = new Dictionary<string, Dictionary<string, ItemData>>();
         static Dictionary<MyDefinitionId, Item> blueprintItem = new Dictionary<MyDefinitionId, Item>();
         static Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<IMyInventory, long>>>> priTypeSubInvenRequest = new Dictionary<int, Dictionary<string, Dictionary<string, Dictionary<IMyInventory, long>>>>();
-        static Dictionary<IMyTextPanel, int> qpanelPriority = new Dictionary<IMyTextPanel, int>();
-        static Dictionary<IMyTextPanel, List<string>> qpanelTypes = new Dictionary<IMyTextPanel, List<string>>();
-        static Dictionary<IMyTextPanel, List<string>> ipanelTypes = new Dictionary<IMyTextPanel, List<string>>();
-        static List<IMyTextPanel> statusPanels = new List<IMyTextPanel>();
-        static List<IMyTextPanel> debugPanels = new List<IMyTextPanel>();
+        static Dictionary<IMyTextSurface, int> qpanelPriority = new Dictionary<IMyTextSurface, int>();
+        static Dictionary<IMyTextSurface, List<string>> qpanelTypes = new Dictionary<IMyTextSurface, List<string>>();
+        static Dictionary<IMyTextSurface, List<string>> ipanelTypes = new Dictionary<IMyTextSurface, List<string>>();
+        static List<IMyTextSurface> statusPanels = new List<IMyTextSurface>();
+        static List<IMyTextSurface> debugPanels = new List<IMyTextSurface>();
         static HashSet<string> debugLogic = new HashSet<string>();
         static List<string> debugText = new List<string>();
         static Dictionary<IMyTerminalBlock, System.Text.RegularExpressions.Match> blockGtag = new Dictionary<IMyTerminalBlock, System.Text.RegularExpressions.Match>();
@@ -192,7 +192,7 @@ PhysicalGunObject/
         static Dictionary<IMyAssembler, HashSet<Item>> assemblerItems = new Dictionary<IMyAssembler, HashSet<Item>>();
         static Dictionary<IMyFunctionalBlock, Work> producerWork = new Dictionary<IMyFunctionalBlock, Work>();
         static Dictionary<IMyFunctionalBlock, int> producerJam = new Dictionary<IMyFunctionalBlock, int>();
-        static Dictionary<IMyTextPanel, Pair> panelSpan = new Dictionary<IMyTextPanel, Pair>();
+        static Dictionary<IMyTextSurface, Pair> panelSpan = new Dictionary<IMyTextSurface, Pair>();
         static Dictionary<IMyTerminalBlock, HashSet<IMyTerminalBlock>> blockErrors = new Dictionary<IMyTerminalBlock, HashSet<IMyTerminalBlock>>();
 
 
@@ -729,7 +729,7 @@ PhysicalGunObject/
         void ParseBlockTags()
         {
             StringBuilder name = new StringBuilder();
-            IMyTextPanel blkPnl;
+            IMyTextSurface blkPnl;
             IMyRefinery blkRfn;
             IMyAssembler blkAsm;
             System.Text.RegularExpressions.Match match;
@@ -755,7 +755,7 @@ PhysicalGunObject/
                 }
 
                 // loop over all tag attributes
-                if ((blkPnl = (block as IMyTextPanel)) != null)
+                if ((blkPnl = (block as IMyTextSurface)) != null)
                 {
                     foreach (string a in attrs)
                     {
@@ -1028,7 +1028,7 @@ PhysicalGunObject/
             string itypeCur, itype, isub;
             string[] words, empty = new string[1] { " " };
             string[][] spanLines;
-            IMyTextPanel panel2;
+            IMyTextSurface panel2;
             IMySlimBlock slim;
             Matrix matrix = new Matrix();
             StringBuilder sb = new StringBuilder();
@@ -1041,7 +1041,7 @@ PhysicalGunObject/
             foreach (ItemData d in typeSubData["ORE"].Values)
                 d.minimum = (d.amount == 0L) ? 0L : Math.Max(d.minimum, d.amount);
 
-            foreach (IMyTextPanel panel in qpanelPriority.Keys)
+            foreach (IMyTextSurface panel in qpanelPriority.Keys)
             {
                 wide = panel.BlockDefinition.SubtypeName.EndsWith("Wide") ? 2 : 1;
                 size = panel.BlockDefinition.SubtypeName.StartsWith("Small") ? 3 : 1;
@@ -1063,7 +1063,7 @@ PhysicalGunObject/
                     {
                         spanLines[x] = empty;
                         slim = panel.CubeGrid.GetCubeBlock(new Vector3I(panel.Position + x * wide * size * matrix.Right + y * size * matrix.Down));
-                        panel2 = (slim != null) ? (slim.FatBlock as IMyTextPanel) : null;
+                        panel2 = (slim != null) ? (slim.FatBlock as IMyTextSurface) : null;
                         if (panel2 != null && ("" + panel2.BlockDefinition == "" + panel.BlockDefinition & panel2.GetPublicTitle().ToUpper().Contains("QUOTAS")))
                         {
                             spanLines[x] = panel2.GetPublicText().Split('\n');
@@ -2074,16 +2074,16 @@ PhysicalGunObject/
         void UpdateInventoryPanels()
         {
             string text, header2, header5;
-            Dictionary<string, List<IMyTextPanel>> itypesPanels = new Dictionary<string, List<IMyTextPanel>>();
+            Dictionary<string, List<IMyTextSurface>> itypesPanels = new Dictionary<string, List<IMyTextSurface>>();
             ScreenFormatter sf;
             long maxamt, maxqta;
 
-            foreach (IMyTextPanel panel in ipanelTypes.Keys)
+            foreach (IMyTextSurface panel in ipanelTypes.Keys)
             {
                 text = String.Join("/", ipanelTypes[panel]);
-                if (itypesPanels.ContainsKey(text)) itypesPanels[text].Add(panel); else itypesPanels[text] = new List<IMyTextPanel>() { panel };
+                if (itypesPanels.ContainsKey(text)) itypesPanels[text].Add(panel); else itypesPanels[text] = new List<IMyTextSurface>() { panel };
             }
-            foreach (List<IMyTextPanel> panels in itypesPanels.Values)
+            foreach (List<IMyTextSurface> panels in itypesPanels.Values)
             {
                 sf = new ScreenFormatter(6);
                 sf.SetBar(0);
@@ -2130,7 +2130,7 @@ PhysicalGunObject/
                 }
                 sf.SetWidth(3, ScreenFormatter.GetWidth("8.88" + ((maxamt >= 1000000000000L) ? " M" : ((maxamt >= 1000000000L) ? " K" : "")), true));
                 sf.SetWidth(5, ScreenFormatter.GetWidth("8.88" + ((maxqta >= 1000000000000L) ? " M" : ((maxqta >= 1000000000L) ? " K" : "")), true));
-                foreach (IMyTextPanel panel in panels)
+                foreach (IMyTextSurface panel in panels)
                     WriteTableToPanel("TIM Inventory", sf, panel, true);
             }
         } // UpdateInventoryPanels()
@@ -2148,7 +2148,7 @@ PhysicalGunObject/
                 for (r = Math.Max(1, numCalls - statsLog.Length + 1); r <= numCalls; r++)
                     sb.Append(statsLog[r % statsLog.Length]);
 
-                foreach (IMyTextPanel panel in statusPanels)
+                foreach (IMyTextSurface panel in statusPanels)
                 {
                     panel.WritePublicTitle("Script Status", false);
                     if (panelSpan.ContainsKey(panel))
@@ -2165,7 +2165,7 @@ PhysicalGunObject/
                     foreach (IMyTerminalBlock blockTo in blockErrors[blockFrom])
                         debugText.Add("No conveyor connection from " + blockFrom.CustomName + " to " + blockTo.CustomName);
                 }
-                foreach (IMyTextPanel panel in debugPanels)
+                foreach (IMyTextSurface panel in debugPanels)
                 {
                     panel.WritePublicTitle("Script Debugging", false);
                     if (panelSpan.ContainsKey(panel))
@@ -2178,7 +2178,7 @@ PhysicalGunObject/
         } // UpdateStatusPanels()
 
 
-        void WriteTableToPanel(string title, ScreenFormatter sf, IMyTextPanel panel, bool allowspan = true, string before = "", string after = "")
+        void WriteTableToPanel(string title, ScreenFormatter sf, IMyTextSurface panel, bool allowspan = true, string before = "", string after = "")
         {
             int spanx, spany, rows, wide, size, width, height;
             int x, y, r;
@@ -2187,7 +2187,7 @@ PhysicalGunObject/
             string text;
             Matrix matrix;
             IMySlimBlock slim;
-            IMyTextPanel spanpanel;
+            IMyTextSurface spanpanel;
 
             // get the spanning dimensions, if any
             wide = panel.BlockDefinition.SubtypeName.EndsWith("Wide") ? 2 : 1;
@@ -2229,9 +2229,9 @@ PhysicalGunObject/
                     for (y = 0; y < spany; y++)
                     {
                         slim = panel.CubeGrid.GetCubeBlock(new Vector3I(panel.Position + x * wide * size * matrix.Right + y * size * matrix.Down));
-                        if (slim != null && (slim.FatBlock is IMyTextPanel) && "" + slim.FatBlock.BlockDefinition == "" + panel.BlockDefinition)
+                        if (slim != null && (slim.FatBlock is IMyTextSurface) && "" + slim.FatBlock.BlockDefinition == "" + panel.BlockDefinition)
                         {
-                            spanpanel = slim.FatBlock as IMyTextPanel;
+                            spanpanel = slim.FatBlock as IMyTextSurface;
                             rows = Math.Max(0, spanLines[x].Length - r);
                             if (y + 1 < spany)
                                 rows = Math.Min(rows, height);
@@ -2609,7 +2609,7 @@ PhysicalGunObject/
                     ScanBlocks<IMyShipGrinder>();
                 if (argScanWelders)
                     ScanBlocks<IMyShipWelder>();
-                ScanBlocks<IMyTextPanel>();
+                ScanBlocks<IMyTextSurface>();
                 ScanBlocks<IMyUserControllableGun>();
 
                 // if we found any new item type/subtypes, re-sort the lists
